@@ -36,12 +36,42 @@ const WordMatching = () => {
   const [incorrect, setIncorrect] = useState([]);
   const currentIndexRef = useRef(0);
 
+  const addNewPairIfNeeded = () => {
+    const activeItems = gamePairs.filter(item => !matchedIds.includes(item.id));
+    if (activeItems.length < 10 && currentIndexRef.current < wordPairs.length) {
+      const pair = wordPairs[currentIndexRef.current];
+      const index = currentIndexRef.current;
+      currentIndexRef.current++;
+
+      const newItems = [
+        { id: `pl-${index}`, word: pair[0], lang: 'pl', pair },
+        { id: `en-${index}`, word: pair[1], lang: 'en', pair }
+      ];
+
+      setGamePairs(prev => {
+        const newGamePairs = [...prev];
+        // Insert in first invisible slot on each side
+        const plIndex = newGamePairs.findIndex(item => item.lang === 'pl' && matchedIds.includes(item.id));
+        const enIndex = newGamePairs.findIndex(item => item.lang === 'en' && matchedIds.includes(item.id));
+
+        if (plIndex !== -1) newGamePairs.splice(plIndex, 1, newItems[0]);
+        else newGamePairs.push(newItems[0]);
+
+        if (enIndex !== -1) newGamePairs.splice(enIndex, 1, newItems[1]);
+        else newGamePairs.push(newItems[1]);
+
+        return newGamePairs;
+      });
+    }
+  };
+
   const loadInitialPairs = () => {
     const pairs = wordPairs.slice(currentIndexRef.current, currentIndexRef.current + 7);
+    const baseIndex = currentIndexRef.current;
     currentIndexRef.current += 7;
     const formatted = pairs.flatMap((pair, i) => [
-      { id: `pl-${i + currentIndexRef.current}`, word: pair[0], lang: 'pl', pair },
-      { id: `en-${i + currentIndexRef.current}`, word: pair[1], lang: 'en', pair }
+      { id: `pl-${i + baseIndex}`, word: pair[0], lang: 'pl', pair },
+      { id: `en-${i + baseIndex}`, word: pair[1], lang: 'en', pair }
     ]);
     setGamePairs(shuffleArray(formatted));
   };
@@ -49,6 +79,10 @@ const WordMatching = () => {
   useEffect(() => {
     loadInitialPairs();
   }, []);
+
+  useEffect(() => {
+    addNewPairIfNeeded();
+  }, [matchedIds]);
 
   const handleClick = (item) => {
     if (matchedIds.includes(item.id) || incorrect.includes(item.id)) return;
@@ -83,7 +117,7 @@ const WordMatching = () => {
     if (isMatched) return 'bg-green-500 text-white invisible';
     if (isIncorrect) return 'bg-red-500 text-white';
     if (isSelected) return 'bg-blue-500 text-white';
-    return 'bg-gray-900 text-white hover:bg-gray-800'; // tło ciemne, tekst biały
+    return 'bg-white text-black hover:bg-gray-100';
   };
 
   const leftItems = gamePairs.filter(p => p.lang === 'pl');
