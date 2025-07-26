@@ -1,103 +1,122 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, useEffect, useRef } from 'react';
+
+const wordPairs = [
+  ["kot", "cat"],
+  ["pies", "dog"],
+  ["dom", "house"],
+  ["jabłko", "apple"],
+  ["samochód", "car"],
+  ["drzewo", "tree"],
+  ["krzesło", "chair"],
+  ["woda", "water"],
+  ["słońce", "sun"],
+  ["księżyc", "moon"],
+  ["chleb", "bread"],
+  ["ser", "cheese"],
+  ["telefon", "phone"],
+  ["komputer", "computer"],
+  ["okno", "window"],
+  ["drzwi", "door"],
+  ["biurko", "desk"],
+  ["długopis", "pen"],
+  ["papier", "paper"],
+  ["książka", "book"]
+];
+
+function shuffleArray(array) {
+  return [...array].sort(() => Math.random() - 0.5);
+}
+
+const WordMatching = () => {
+  const [gamePairs, setGamePairs] = useState([]);
+  const [selected, setSelected] = useState([]);
+  const [matchedIds, setMatchedIds] = useState([]);
+  const [incorrect, setIncorrect] = useState([]);
+  const currentIndexRef = useRef(0);
+
+  const loadInitialPairs = () => {
+    const pairs = wordPairs.slice(currentIndexRef.current, currentIndexRef.current + 7);
+    currentIndexRef.current += 7;
+    const formatted = pairs.flatMap((pair, i) => [
+      { id: `pl-${i + currentIndexRef.current}`, word: pair[0], lang: 'pl', pair },
+      { id: `en-${i + currentIndexRef.current}`, word: pair[1], lang: 'en', pair }
+    ]);
+    setGamePairs(shuffleArray(formatted));
+  };
+
+  useEffect(() => {
+    loadInitialPairs();
+  }, []);
+
+  const handleClick = (item) => {
+    if (matchedIds.includes(item.id) || incorrect.includes(item.id)) return;
+
+    if (selected.length === 0) {
+      setSelected([item]);
+    } else if (selected.length === 1) {
+      const first = selected[0];
+      if (first.lang === item.lang) {
+        setSelected([item]);
+        return;
+      }
+
+      if (first.pair[0] === item.pair[0] && first.pair[1] === item.pair[1]) {
+        setMatchedIds(prev => [...prev, first.id, item.id]);
+        setSelected([]);
+      } else {
+        setIncorrect([first.id, item.id]);
+        setTimeout(() => {
+          setIncorrect([]);
+          setSelected([]);
+        }, 1000);
+      }
+    }
+  };
+
+  const getClass = (item) => {
+    const isSelected = selected.some(sel => sel.id === item.id);
+    const isMatched = matchedIds.includes(item.id);
+    const isIncorrect = incorrect.includes(item.id);
+
+    if (isMatched) return 'bg-green-500 text-white invisible';
+    if (isIncorrect) return 'bg-red-500 text-white';
+    if (isSelected) return 'bg-blue-500 text-white';
+    return 'bg-gray-900 text-white hover:bg-gray-800'; // tło ciemne, tekst biały
+  };
+
+  const leftItems = gamePairs.filter(p => p.lang === 'pl');
+  const rightItems = gamePairs.filter(p => p.lang === 'en');
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex justify-center items-center min-h-screen bg-black">
+      <div className="grid grid-cols-2 gap-16">
+        <div className="grid grid-rows-7 gap-4">
+          {leftItems.map(item => (
+            <div
+              key={item.id}
+              className={`p-4 rounded-xl border border-gray-700 shadow-md text-center cursor-pointer transition-colors duration-300 ${getClass(item)}`}
+              onClick={() => handleClick(item)}
+            >
+              {item.word}
+            </div>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="grid grid-rows-7 gap-4">
+          {rightItems.map(item => (
+            <div
+              key={item.id}
+              className={`p-4 rounded-xl border border-gray-700 shadow-md text-center cursor-pointer transition-colors duration-300 ${getClass(item)}`}
+              onClick={() => handleClick(item)}
+            >
+              {item.word}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default WordMatching;
