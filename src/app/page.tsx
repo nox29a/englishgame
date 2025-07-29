@@ -3490,7 +3490,7 @@ const hardWords: Word[] = [
   { "id": 341, "pl": "wstyd", "en": "shame" },
   { "id": 342, "pl": "poczucie winy", "en": "guilt" },
   { "id": 343, "pl": "skrucha", "en": "remorse" },
-  { "id": 344, "pl": "przebaczenie", " abbreviation": "forgiveness" },
+  { "id": 344, "pl": "przebaczenie", "en": "forgiveness" },
   { "id": 345, "pl": "zemsta", "en": "revenge" },
   { "id": 346, "pl": "sprawiedliwość", "en": "justice" },
   { "id": 347, "pl": "kara", "en": "punishment" },
